@@ -1,3 +1,4 @@
+import { Order, ProductItem, SuccessOrder } from "../types";
 import { Api, ApiListResponse } from "./base/api";
 
 export interface ILarekApi{
@@ -11,6 +12,7 @@ export class LarekApi implements ILarekApi{
     constructor(baseUrl: string){
         this._client = new Api(baseUrl)
     }
+    
 
     getProductsList() : Promise<ApiListResponse<ProductItem>>{
         return this._client.get("/product/") as Promise<ApiListResponse<ProductItem>>

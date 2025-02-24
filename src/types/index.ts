@@ -1,4 +1,12 @@
-type ProductItem = {
+export const сategoryType = {
+    ['софт-скил']: 'soft',
+    ['хард-скил']: 'hard',
+    ['другое']: 'other',
+    ['кнопка']: 'button',
+    ['дополнительное']: 'additional',
+}
+
+export type ProductItem = {
     id: string,
     description: string,
     image: string, 
@@ -7,7 +15,12 @@ type ProductItem = {
     price?: number
 }
 
-type Order = {
+export type OrderDeliveryInfo = {
+    payment: "online" | "cash",
+    address: string,
+}
+
+export type Order = {
     payment: "online" | "offline",
     email: string,
     phone: string,
@@ -16,7 +29,8 @@ type Order = {
     items: string[]
 }
 
-type SuccessOrder = {
+export type SuccessOrder = {
     id: string,
     total: number
 }
+

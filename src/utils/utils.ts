@@ -133,3 +133,7 @@ export function createElement<
     }
     return element;
 }
+
+export function getPricePresent(price?: number) : string {
+    return price ? price.toString() + " синапсов" : "Бесценно";
+} 

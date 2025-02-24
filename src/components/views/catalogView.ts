@@ -1,22 +1,21 @@
 import { bem, createElement } from "../../utils/utils";
 import { IEvents } from "../base/events";
 import { Catalog } from "../models/catalog";
+import { CatalogProductView } from "./catalogProductView";
 import { IView } from "./iview";
 import { ProductCardView } from "./productCardView";
 
 export class CatalogView implements IView{
     private _catalog : Catalog;
     private _presenter: HTMLElement;
-    constructor(broker: IEvents, catalog: Catalog, holder: HTMLElement){
+    constructor(broker: IEvents, catalog: Catalog, holder: HTMLElement, cardTemplate : HTMLTemplateElement){
         this._catalog = catalog;
-        this._presenter = CatalogView.createPresenter(broker, catalog, holder);
+        this._presenter = CatalogView.createPresenter(broker, catalog, holder, cardTemplate);
     }
 
-    private static createPresenter(broker: IEvents, catalog: Catalog, parent: HTMLElement) : HTMLElement{
-        const cardTemplate = document.querySelector("#card-preview") as HTMLTemplateElement;
+    private static createPresenter(broker: IEvents, catalog: Catalog, parent: HTMLElement, cardTemplate : HTMLTemplateElement) : HTMLElement{
         const productViewsItems = catalog.getProducts().map(pr => {
-            let card = new ProductCardView(broker, pr, cardTemplate).getRendered();
-            card.classList.add(bem("gallery", "item").name);
+            let card = new CatalogProductView(broker, pr, cardTemplate).getRendered();
             return card;
         })
         productViewsItems.forEach(prodView => {

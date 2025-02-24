@@ -1,3 +1,5 @@
+import { ProductItem } from "../../types";
+
 export class Catalog{
     private _products: ProductItem[]
     constructor(products: ProductItem[]){

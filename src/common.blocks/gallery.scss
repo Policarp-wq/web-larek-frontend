@@ -4,6 +4,7 @@
 .gallery {
   @include mixins.container;
   @include mixins.grid(600px, 24px);
+  justify-content: center;
 
   &__item {
     border: none;
