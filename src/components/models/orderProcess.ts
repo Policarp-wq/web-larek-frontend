@@ -6,11 +6,9 @@ export class OrderProcess{
     private _basketInfo?: BasketInfo;
     constructor(){}
     addDeliveryInfo(deliveryInfo: OrderDeliveryInfo){
-        this.clear();
         this._deliveryInfo = deliveryInfo;
     }
     addContactInfo(contactInfo: ContactInfo){
-        this._basketInfo = null;
         this._contactInfo = contactInfo;
     }
     addBasketInfo(basketInfo: BasketInfo){

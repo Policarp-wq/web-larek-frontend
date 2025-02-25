@@ -44,3 +44,8 @@ export type SuccessOrder = {
     total: number
 }
 
+export type ProductFull = {
+    product: ProductItem,
+    available: boolean
+}
+

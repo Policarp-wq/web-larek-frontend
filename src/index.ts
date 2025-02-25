@@ -4,14 +4,15 @@ import { LarekApi } from './components/larekApi';
 import { Basket, BasketItem } from './components/models/basket';
 import { Catalog } from './components/models/catalog';
 import { OrderProcess } from './components/models/orderProcess';
-import { BasketView } from './components/views/basketView';
-import { CatalogProductView } from './components/views/catalogProductView';
+import { BasketItemViewFactory } from './components/views/basketItemView';
+import { BasketView, BasketViewFactory } from './components/views/basketView';
+import { CatalogProductView, CatalogProductViewFactory } from './components/views/catalogProductView';
 import { CatalogView } from './components/views/catalogView';
-import { ContactsView } from './components/views/contactsView';
+import { ContactsView, ContactsViewFactory } from './components/views/contactsView';
 import { ModalWindow } from './components/views/modalwindow';
-import { OrderView } from './components/views/orderVIew';
-import { ProductCardView } from './components/views/productCardView';
-import { SuccessView } from './components/views/successView';
+import { OrderView, OrderViewFactory } from './components/views/orderVIew';
+import { ProductFullView, ProductFullViewFactory } from './components/views/productCardView';
+import { SuccessView, SuccessViewFactory } from './components/views/successView';
 import './scss/styles.scss';
 import { BasketInfo, ContactInfo, OrderDeliveryInfo, ProductItem } from './types';
 import { API_URL, CDN_URL } from './utils/constants';
@@ -19,13 +20,15 @@ import { ensureElement } from './utils/utils';
 
 function handleOutsideModalClicked(evt: MouseEvent){
         const targetElement = evt.target as HTMLElement;
+        if(targetElement.classList.contains("basket__item-delete"))
+            return;
         if(!targetElement.closest(".modal__container")){
             broker.emit("clicked:outside_modal")
         }
 }
 
 const cardCatalogTemplate = ensureElement<HTMLTemplateElement>("#card-catalog");
-const cardPreviewTemplate = ensureElement<HTMLTemplateElement>("#card-preview");
+const productFullTemplate = ensureElement<HTMLTemplateElement>("#card-preview");
 const basketItemTemplate = ensureElement<HTMLTemplateElement>("#card-basket");
 const basketTemplate = ensureElement<HTMLTemplateElement>("#basket");
 const orderTemplate = ensureElement<HTMLTemplateElement>("#order");
@@ -41,7 +44,7 @@ const broker = new EventEmitter();
 const modalWindow : ModalWindow = new ModalWindow(broker, modalWindowContainer);
 const order: OrderProcess = new OrderProcess();
 const basket = new Basket(broker);
-const basketView = new BasketView(broker, basket, basketTemplate, basketItemTemplate);
+
 
 broker.on(ModalWindow.ModalOpenedEvent, () =>{
     setTimeout(() => {
@@ -59,11 +62,11 @@ basketButton.addEventListener('click', (evt) =>{
     modalWindow.open(basketView);
 })
 
-broker.on(ProductCardView.BasketAddedEvent, (product) =>{
+broker.on(ProductFullView.BasketAddedEvent, (product) =>{
     basket.addItem(product as ProductItem);
 })
 
-broker.on(ProductCardView.BasketAddedEvent, () =>{
+broker.on(ProductFullView.BasketAddedEvent, () =>{
     modalWindow.close();
 });
 
@@ -72,19 +75,36 @@ broker.on(Basket.BasketChangedEvent, () =>{
     basketCounter.textContent = basket.getProdcutsCnt().toString();
 })
 
-const orderView = new OrderView(broker, orderTemplate);
+broker.on(SuccessView.SuccessCloseEvent, () => {
+    modalWindow.close();
+})
+
+
+
+const basketItemViewFactory = new BasketItemViewFactory(broker, basketItemTemplate);
+
+const factories = {
+    catalogProductViewFactory: new CatalogProductViewFactory(broker, cardCatalogTemplate),
+    productFullViewFactory: new ProductFullViewFactory(broker, productFullTemplate),
+    contactsViewFactory: new ContactsViewFactory(broker, contactsTemplate),
+    basketItemViewFactory: basketItemViewFactory,
+    basketViewFactory: new BasketViewFactory(broker, basketTemplate, basketItemViewFactory),
+    orderViewFactory: new OrderViewFactory(broker, orderTemplate),
+    successViewFactory: new SuccessViewFactory(broker, successTemplate),
+}
+const basketView = factories.basketViewFactory.getView(basket);
+
+const orderView = factories.orderViewFactory.getView();
 broker.on(BasketView.BasketOrderEvent, (basketInfo: BasketInfo) =>{
+    order.clear();
     order.addBasketInfo(basketInfo);
     modalWindow.open(orderView);
 })
-const contacts = new ContactsView(broker, contactsTemplate);
+
+const contacts = factories.contactsViewFactory.getView();
 broker.on(OrderView.OrderContinueEvent, (orderInfo: OrderDeliveryInfo) => {
     order.addDeliveryInfo(orderInfo);
     modalWindow.open(contacts);
-})
-
-broker.on(SuccessView.SuccessCloseEvent, () => {
-    modalWindow.close();
 })
 
 broker.on(ContactsView.ContactsAddedEvent, (contactsInfo: ContactInfo) => {
@@ -97,7 +117,7 @@ broker.on(ContactsView.ContactsAddedEvent, (contactsInfo: ContactInfo) => {
     }
     modalWindow.close();
     larek.sendOrder(order.getOrder()).then(success => {
-        const successView = new SuccessView(broker, successTemplate, success.total);
+        const successView = factories.successViewFactory.getView(success);
         basket.clear();
         modalWindow.open(successView);
     }).catch(err => {
@@ -106,17 +126,19 @@ broker.on(ContactsView.ContactsAddedEvent, (contactsInfo: ContactInfo) => {
     
 })
 
+broker.on(CatalogProductView.CatalogProductClickedEvent, (product : ProductItem) => {
+    modalWindow.open(factories.productFullViewFactory.getView({product: product, available: !basket.contains(product.id)}))
+});
+
+
 larek.getProductsList().then(ls => {
     ls.items.forEach(it =>{
         it.image = CDN_URL + it.image 
     })
     const catalog = new Catalog(ls.items);
-    const catalogView = new CatalogView(broker, catalog, document.querySelector(".gallery"), cardCatalogTemplate);
+    const catalogView = new CatalogView(catalog, document.querySelector(".gallery"), factories.catalogProductViewFactory);
 
-    broker.on(CatalogProductView.CatalogProductClickedEvent, (product) => {
-        const card = new ProductCardView(broker, (product as ProductItem), cardPreviewTemplate);
-        modalWindow.open(card)
-    });
+
 }).catch(err => {
     console.error(err);
 })

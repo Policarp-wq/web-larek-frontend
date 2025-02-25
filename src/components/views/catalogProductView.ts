@@ -2,36 +2,46 @@ import { ProductItem, сategoryType } from "../../types";
 import { bem, cloneTemplate, getPricePresent } from "../../utils/utils";
 import { IEvents } from "../base/events";
 import { IView } from "./iview";
+import { ViewFactory } from "./viewFactory";
 
-export class CatalogProductView implements IView{
-    private _product : ProductItem;
-    private _presenter: HTMLDivElement;
-    public static CatalogProductClickedEvent : string = "catalog_item:clicked";
-    constructor(broker : IEvents, product: ProductItem, template: HTMLTemplateElement){
-        this._product = product;
-        this._presenter = CatalogProductView.createPresenter(broker, product, template);
+export class CatalogProductViewFactory extends ViewFactory<CatalogProductView>{
+    
+    constructor(broker : IEvents, template: HTMLTemplateElement){
+        super(broker, template);
     }
-    static createPresenter(broker: IEvents, product: ProductItem, template: HTMLTemplateElement): HTMLDivElement {
-        const btn = cloneTemplate<HTMLDivElement>(template);
-        btn.addEventListener('click', (evt) =>{
-            broker.emit(this.CatalogProductClickedEvent, product); // map catalog - preview
+    getView(product: ProductItem): CatalogProductView {
+        const view = new CatalogProductView();
+        view.holder = cloneTemplate<HTMLButtonElement>(this._template);
+        view.category = view.holder.querySelector(".card__category");
+        view.image = view.holder.querySelector(".card__image");
+        view.title = view.holder.querySelector(".card__title");
+        view.price = view.holder.querySelector(".card__price");
+
+        view.holder.addEventListener('click', () =>{
+            this._broker.emit(CatalogProductView.CatalogProductClickedEvent, product); // map catalog - preview
         });
 
-        const category : HTMLSpanElement = btn.querySelector(".card__category"); 
-        category.textContent = product.category;
-        
-        (btn.querySelector(".card__image") as HTMLImageElement).src = product.image;
-
+        view.category.textContent = product.category;
         const categoryKey = product.category as keyof typeof сategoryType;
-        category.classList.add(bem("card", "category", сategoryType[categoryKey]).name);
+        view.category.classList.add(bem("card", "category", сategoryType[categoryKey]).name);
 
-        (btn.querySelector(".card__title") as HTMLHeadingElement).textContent = product.title;
-        (btn.querySelector(".card__price") as HTMLSpanElement)
-            .textContent = getPricePresent(product.price);
+        view.title.textContent = product.title;
+        view.price.textContent = getPricePresent(product.price);
+        view.image.src = product.image;
 
-        return btn;
+        return view;
     }
+}
+
+export class CatalogProductView implements IView{
+    category: HTMLSpanElement;
+    holder: HTMLButtonElement;
+    image: HTMLImageElement;
+    title: HTMLHeadingElement;
+    price: HTMLSpanElement;
+    public static CatalogProductClickedEvent : string = "catalog_item:clicked";
+
     getRendered(): HTMLElement {
-        return this._presenter;
+        return this.holder;
     }
 }

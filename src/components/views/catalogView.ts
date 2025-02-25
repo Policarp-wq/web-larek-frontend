@@ -1,27 +1,29 @@
 import { bem, createElement } from "../../utils/utils";
 import { IEvents } from "../base/events";
 import { Catalog } from "../models/catalog";
-import { CatalogProductView } from "./catalogProductView";
+import { CatalogProductView, CatalogProductViewFactory } from "./catalogProductView";
 import { IView } from "./iview";
-import { ProductCardView } from "./productCardView";
+import { ProductFullView, ProductFullViewFactory } from "./productCardView";
+import { IViewFactory } from "./viewFactory";
 
 export class CatalogView implements IView{
     private _catalog : Catalog;
     private _presenter: HTMLElement;
-    constructor(broker: IEvents, catalog: Catalog, holder: HTMLElement, cardTemplate : HTMLTemplateElement){
+    private _cardFactory: IViewFactory<CatalogProductView>;
+    constructor(catalog: Catalog, holder: HTMLElement, cardFactory: IViewFactory<CatalogProductView>){
         this._catalog = catalog;
-        this._presenter = CatalogView.createPresenter(broker, catalog, holder, cardTemplate);
+        this._presenter = holder;
+        this._cardFactory = cardFactory;
+        this.fill(catalog);
     }
 
-    private static createPresenter(broker: IEvents, catalog: Catalog, parent: HTMLElement, cardTemplate : HTMLTemplateElement) : HTMLElement{
+    private fill(catalog: Catalog){
         const productViewsItems = catalog.getProducts().map(pr => {
-            let card = new CatalogProductView(broker, pr, cardTemplate).getRendered();
-            return card;
+            return this._cardFactory.getView(pr);
         })
         productViewsItems.forEach(prodView => {
-            parent.appendChild(prodView);
+            this._presenter.appendChild(prodView.getRendered());
         })
-        return parent;
     }
 
     getRendered(): HTMLElement {

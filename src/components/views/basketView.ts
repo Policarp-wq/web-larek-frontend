@@ -4,69 +4,77 @@ import { IEvents } from "../base/events";
 import { Basket, BasketItem, IBasket } from "../models/basket";
 import { BasketItemView } from "./basketItemView";
 import { IView } from "./iview";
+import { IViewFactory, ViewFactory } from "./viewFactory";
 
-export class BasketView implements IView{
-    private _basket: IBasket;
-    private _presenter: HTMLDivElement;
-    private readonly _broker : IEvents;
-    private _totalSpan: HTMLSpanElement;
-    private _itemsList: HTMLUListElement;
-    private readonly _basketItemTemplate: HTMLTemplateElement;
-    public static BasketOrderEvent: string = "basket:order"
-
-    constructor(broker : IEvents, basket: IBasket, template: HTMLTemplateElement, basketItemTemplate: HTMLTemplateElement){
-        this._basket = basket;
-        this._broker = broker;
-        this._basketItemTemplate = basketItemTemplate;
-
-        this._presenter = this.createPresenter(template);
+export class BasketViewFactory extends ViewFactory<BasketView>{
+    private _basketItemViewFactory: IViewFactory<BasketItemView>;
+    constructor(broker : IEvents, template: HTMLTemplateElement, basketItemViewFactory: IViewFactory<BasketItemView>){
+        super(broker, template);
+        this._basketItemViewFactory = basketItemViewFactory;
     }
-    private createPresenter(template: HTMLTemplateElement) : HTMLDivElement{
-        const presenter = cloneTemplate<HTMLDivElement>(template);
-        const orderBtn: HTMLButtonElement = presenter.querySelector(bem("basket", "button").class);
-        orderBtn.addEventListener('click', (evt) =>{
+    getView(basket: Basket): BasketView {
+        const view = new BasketView(this._basketItemViewFactory);
+        const presenter = cloneTemplate<HTMLDivElement>(this._template);
+        view.orderBtn = presenter.querySelector(bem("basket", "button").class);
+        view.orderBtn.addEventListener('click', () =>{
+            if(basket.getProdcutsCnt() == 0){
+                console.log("basket is empty");
+                return;
+            }
+                
             const basketInfo: BasketInfo = {
-                total: this._basket.getTotal(),
-                items: this._basket.getProducts().map(pr => pr.id)
+                total: basket.getTotal(),
+                items: basket.getProducts().map(pr => pr.id)
             }
             this._broker.emit(BasketView.BasketOrderEvent, basketInfo);
         })
-        this._itemsList = presenter.querySelector(bem("basket", "list").class);
-
-        this._totalSpan = presenter.querySelector(bem("basket", "price").class)
-        
+        view.itemsList = presenter.querySelector(bem("basket", "list").class);
+        view.totalSpan = presenter.querySelector(bem("basket", "price").class);
+        view.holder = presenter;
 
         this._broker.on(Basket.BasketTotalUpdated, (data) => {
             const total = (data as {total : number}).total;
-            this.setTotal(total);
+            view.setTotal(total);
         });
 
         this._broker.on(BasketItemView.BasketItemRemoveRequestEvent, (basketItem) =>{
-            this._basket.removeItemByIndex((basketItem as BasketItem).index);
+            basket.removeItemByIndex((basketItem as BasketItem).index);
         })
-        this._broker.on(Basket.BasketChangedEvent, () => this.fillBasket());
-        this.setTotal(this._basket.getTotal());
-        this.fillBasket();
-        return presenter;
+        this._broker.on(Basket.BasketChangedEvent, (bask: Basket) => view.fillBasket(bask));
+        view.setTotal(basket.getTotal());
+        view.fillBasket(basket);
+        return view;
+    }
+}
+
+export class BasketView implements IView{
+    holder: HTMLDivElement;
+    orderBtn: HTMLButtonElement;
+    totalSpan: HTMLSpanElement;
+    itemsList: HTMLUListElement;
+    private _basketItemViewFactory: IViewFactory<BasketItemView>;
+    public static BasketOrderEvent: string = "basket:order"
+
+    constructor(basketItemViewFactory: IViewFactory<BasketItemView>){
+        this._basketItemViewFactory = basketItemViewFactory;
     }
 
     private getBasketItemView(basketItem: BasketItem) : BasketItemView{
-        return new BasketItemView(this._broker, basketItem, this._basketItemTemplate);
+        return this._basketItemViewFactory.getView(basketItem);
     }
 
-    private fillBasket(){
-        this._itemsList.innerHTML = "";
-        this._basket.getBasketItems().forEach(basketItem => {
-            this._itemsList.appendChild(this.getBasketItemView(basketItem).getRendered());
+    fillBasket(basket: IBasket){
+        this.itemsList.innerHTML = "";
+        basket.getBasketItems().forEach(basketItem => {
+            this.itemsList.appendChild(this.getBasketItemView(basketItem).getRendered());
         });
     }
 
-
-    private setTotal(total: number){
-        this._totalSpan.textContent = total.toString();
+    setTotal(total: number){
+        this.totalSpan.textContent = total.toString();
     }
     
     getRendered(): HTMLElement {
-        return this._presenter;
+        return this.holder;
     }
 }

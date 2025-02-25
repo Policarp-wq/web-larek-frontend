@@ -27,14 +27,14 @@ export class Basket implements IBasket{
     constructor(broker: IEvents){
         this._broker = broker;
         this._products = [];
-        this._broker.on(Basket.BasketItemAddedEvent, (data) => {
-            this._broker.emit(Basket.BasketChangedEvent);
+        this._broker.on(Basket.BasketItemAddedEvent, () => {
+            this._broker.emit(Basket.BasketChangedEvent, this);
         });
-        this._broker.on(Basket.BasketItemRemovedEvent, (data) => {
-            this._broker.emit(Basket.BasketChangedEvent);
+        this._broker.on(Basket.BasketItemRemovedEvent, () => {
+            this._broker.emit(Basket.BasketChangedEvent, this);
         })
-        this._broker.on(Basket.BasketClearedEvent, (data) => {
-            this._broker.emit(Basket.BasketChangedEvent);
+        this._broker.on(Basket.BasketClearedEvent, () => {
+            this._broker.emit(Basket.BasketChangedEvent, this);
         })
     }
     addItem(item: ProductItem){
@@ -46,10 +46,6 @@ export class Basket implements IBasket{
             console.log(`Item with id: ${item.id} already in basket`);
             return;
         }
-        // if(this._products.has(item.id)){
-        //     console.log(`Item with id: ${item.id} already in basket`);
-        //     return;
-        // }
         this._products.push(new BasketItem(item, this._products.length));
         this._total += item.price; 
         this._broker.emit(Basket.BasketItemAddedEvent, item);
@@ -70,10 +66,10 @@ export class Basket implements IBasket{
         this._total -= copy.product.price;
         this._broker.emit(Basket.BasketItemRemovedEvent, copy);
         this._broker.emit(Basket.BasketTotalUpdated, {total: this._total});
-        this._broker.emit(Basket.BasketChangedEvent);
+        this._broker.emit(Basket.BasketChangedEvent, this);
     }
     removeItem(item: ProductItem){
-        if(!this._products.some(it => it.product.id === item.id))
+        if(!this.contains(item.id))
             return;
         let itemInd = -1;
         for(let i = 0; i < this._products.length; ++i){
@@ -87,6 +83,10 @@ export class Basket implements IBasket{
             return;
         }
         this.removeItemByIndex(itemInd);
+    }
+
+    contains(id: string): boolean{
+        return this._products.some(it => it.product.id === id);
     }
 
     getProducts(): ProductItem[] {

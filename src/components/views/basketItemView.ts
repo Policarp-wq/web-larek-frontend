@@ -2,34 +2,42 @@ import { bem, cloneTemplate, getPricePresent } from "../../utils/utils";
 import { IEvents } from "../base/events";
 import { Basket, BasketItem } from "../models/basket";
 import { IView } from "./iview";
+import { ViewFactory } from "./viewFactory";
+
+export class BasketItemViewFactory extends ViewFactory<BasketItemView>{
+    constructor(broker: IEvents, template: HTMLTemplateElement){
+        super(broker, template);
+    }
+
+    getView(basketItem: BasketItem): BasketItemView {
+        const view = new BasketItemView();
+        const presenter = cloneTemplate<HTMLDivElement>(this._template);
+        view.index = presenter.querySelector(bem("basket", "item-index").class);
+        view.price = presenter.querySelector(bem("card", "price").class);
+        view.deleteBtn = presenter.querySelector(bem("basket", "item-delete").class)
+        view.deleteBtn.addEventListener('click', () =>{
+            this._broker.emit(BasketItemView.BasketItemRemoveRequestEvent, basketItem);
+        });
+        view.title = presenter.querySelector(bem("card", "title").class);
+        view.holder = presenter;
+
+        view.index.textContent = (basketItem.index + 1).toString();
+        view.title.textContent = basketItem.product.title;
+        view.price.textContent = basketItem.product.price.toString();
+        
+        return view;
+    }
+}
 
 export class BasketItemView implements IView{
-    private _presenter:  HTMLDivElement;
-    private _item: BasketItem;
-    private _broker: IEvents;
+    holder:  HTMLDivElement;
+    index: HTMLSpanElement;
+    title: HTMLSpanElement;
+    price: HTMLSpanElement;
+    deleteBtn: HTMLButtonElement;
     public static BasketItemRemoveRequestEvent = "basket_item:remove_requested";
-    constructor(broker: IEvents, item: BasketItem, template: HTMLTemplateElement){
-        this._item = item;
-        this._broker = broker;
-        this._presenter = this.createPresenter(template);
-    }
-    private createPresenter(template: HTMLTemplateElement) : HTMLDivElement{
-        const presenter = cloneTemplate<HTMLDivElement>(template);
-        presenter.querySelector(bem("basket", "item-index").class)
-            .textContent = (this._item.index + 1).toString();
-        presenter.querySelector(bem("card", "title").class)
-            .textContent = this._item.product.title;
 
-        presenter.querySelector(bem("card", "price").class)
-            .textContent = getPricePresent(this._item.product.price);
-        (presenter.querySelector(bem("basket", "item-delete").class) as HTMLButtonElement)
-            .addEventListener('click', (evt) =>{
-                this._broker.emit(BasketItemView.BasketItemRemoveRequestEvent, this._item);
-            });
-        
-        return presenter;
-    }
     getRendered(): HTMLElement {
-        return this._presenter;
+        return this.holder;
     }
 }
