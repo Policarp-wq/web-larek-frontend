@@ -1,3 +1,4 @@
+import { BasketInfo } from "../../types";
 import { bem, cloneTemplate } from "../../utils/utils";
 import { IEvents } from "../base/events";
 import { Basket, BasketItem, IBasket } from "../models/basket";
@@ -24,7 +25,11 @@ export class BasketView implements IView{
         const presenter = cloneTemplate<HTMLDivElement>(template);
         const orderBtn: HTMLButtonElement = presenter.querySelector(bem("basket", "button").class);
         orderBtn.addEventListener('click', (evt) =>{
-            this._broker.emit(BasketView.BasketOrderEvent, this._basket.getProducts());
+            const basketInfo: BasketInfo = {
+                total: this._basket.getTotal(),
+                items: this._basket.getProducts().map(pr => pr.id)
+            }
+            this._broker.emit(BasketView.BasketOrderEvent, basketInfo);
         })
         this._itemsList = presenter.querySelector(bem("basket", "list").class);
 
@@ -51,7 +56,7 @@ export class BasketView implements IView{
 
     private fillBasket(){
         this._itemsList.innerHTML = "";
-        this._basket.getProducts().forEach(basketItem => {
+        this._basket.getBasketItems().forEach(basketItem => {
             this._itemsList.appendChild(this.getBasketItemView(basketItem).getRendered());
         });
     }

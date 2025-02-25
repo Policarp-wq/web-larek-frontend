@@ -1,20 +1,15 @@
 import { ProductItem } from "../../types";
 import { IEvents } from "../base/events";
+import { BasketItem } from "./basketItem";
 
-export class BasketItem{
-    index: number = 0;
-    product: ProductItem;
-    constructor(product: ProductItem, index: number){
-        this.product = product;
-        this.index = index;
-    }
-}
+
 
 export interface IBasket{
     addItem(item: ProductItem): void;
     removeItem(item: ProductItem) : void;
     removeItemByIndex(index: number) : void;
-    getProducts(): BasketItem[];
+    getBasketItems(): BasketItem[];
+    getProducts(): ProductItem[];
     getTotal(): number;
     getProdcutsCnt(): number;
     clear(): void;
@@ -36,6 +31,9 @@ export class Basket implements IBasket{
             this._broker.emit(Basket.BasketChangedEvent);
         });
         this._broker.on(Basket.BasketItemRemovedEvent, (data) => {
+            this._broker.emit(Basket.BasketChangedEvent);
+        })
+        this._broker.on(Basket.BasketClearedEvent, (data) => {
             this._broker.emit(Basket.BasketChangedEvent);
         })
     }
@@ -90,8 +88,12 @@ export class Basket implements IBasket{
         }
         this.removeItemByIndex(itemInd);
     }
+
+    getProducts(): ProductItem[] {
+        return this._products.map(it => it.product);
+    }
     
-    getProducts(): BasketItem[] {
+    getBasketItems(): BasketItem[] {
         return this._products;
     }
     getTotal(): number {
@@ -103,6 +105,9 @@ export class Basket implements IBasket{
     clear(): void {
         this._products = [];
         this._total = 0;
+        this._broker.emit(Basket.BasketTotalUpdated, {total: 0});
         this._broker.emit(Basket.BasketClearedEvent);
     }
 } 
+
+export { BasketItem };

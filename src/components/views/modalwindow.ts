@@ -14,6 +14,7 @@ export class ModalWindow implements IModalWindow{
     private _contentElementHolder: HTMLElement;
     public static ModalOpenedEvent: string = "modal:opened";
     public static ModalClosedEvent: string = "modal:closed";
+    private opened: boolean = false;
     constructor(broker :IEvents, container: HTMLElement){
         this.Container = container;
         this._broker = broker;
@@ -30,6 +31,7 @@ export class ModalWindow implements IModalWindow{
         catch(err){
             console.error(err);
         }
+        this._broker.on("clicked:outside_modal", () => this.close())
         
     }
     open(child : IView): void {
@@ -38,13 +40,14 @@ export class ModalWindow implements IModalWindow{
             console.error("Content element holder is not assigned!");
             return;
         }
-        this._broker.emit(ModalWindow.ModalOpenedEvent);
         this._contentElementHolder.appendChild(child.getRendered());
         this.Container.classList.add("modal_active");
+        this._broker.emit(ModalWindow.ModalOpenedEvent);
+
     }
     close(): void {
         this.Container.classList.remove("modal_active");
-
         this._contentElementHolder.innerHTML = "";
+        this._broker.emit(ModalWindow.ModalClosedEvent);
     }
 }

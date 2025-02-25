@@ -3,7 +3,7 @@ export class ToggleButtons{
     constructor(...buttons: HTMLButtonElement[]){
         this._buttons = buttons;
     }
-    toggle(button: HTMLButtonElement, onDisable?: (btn: HTMLButtonElement) => void, onEnable?: (btn: HTMLButtonElement) => void){
+    toggle(button?: HTMLButtonElement, onDisable?: (btn: HTMLButtonElement) => void, onEnable?: (btn: HTMLButtonElement) => void){
         this._buttons.forEach(btn =>{
             if(btn == button){
                 btn.disabled = true;

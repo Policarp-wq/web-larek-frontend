@@ -5,14 +5,14 @@ import { IView } from "./iview";
 
 export class ProductCardView implements IView {
     private _product: ProductItem;
-    Card: HTMLDivElement;
+    private _presenter: HTMLDivElement;
     public static BasketAddedEvent : string = "product:added";
     constructor(broker: IEvents, product: ProductItem, template: HTMLTemplateElement){
         this._product = product;
-        this.Card = ProductCardView.getProductCard(this._product, template, broker);
+        this._presenter = this.createPresenter(this._product, template, broker);
     }
 
-    private static getProductCard(product : ProductItem, template: HTMLTemplateElement, broker: IEvents) : HTMLDivElement{
+    private createPresenter(product : ProductItem, template: HTMLTemplateElement, broker: IEvents) : HTMLDivElement{
         const card = cloneTemplate<HTMLDivElement>(template);
 
         (card.querySelector(".card__image") as HTMLImageElement).src = product.image;
@@ -29,7 +29,6 @@ export class ProductCardView implements IView {
 
         const button : HTMLButtonElement = card.querySelector(".card__button");
         if(product.price){
-            // ADD EVENT LISTENER!!!
             button.addEventListener("click", (evt) => {
                 broker.emit(ProductCardView.BasketAddedEvent, product);
             })
@@ -41,6 +40,6 @@ export class ProductCardView implements IView {
     }
 
     getRendered(): HTMLElement {
-        return this.Card;
+        return this._presenter;
     }
 }

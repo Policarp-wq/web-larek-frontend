@@ -28,6 +28,7 @@ export class OrderView implements IView{
         this._continueBtn = presenter.querySelector(bem("order", "button").class) as HTMLButtonElement;
         this._continueBtn.addEventListener('click', () => {
             this._broker.emit(OrderView.OrderContinueEvent, this.getDeliveryInfo())
+            this.clear();
         })
         const buttons = presenter.querySelector(".order__buttons").querySelectorAll(".button") as NodeListOf<HTMLButtonElement>;
         const toggler = new ToggleButtons(...buttons.values())
@@ -47,6 +48,11 @@ export class OrderView implements IView{
         this._toggler = toggler;
         this.inputUpdated();
         return presenter;
+    }
+    private clear(){
+        this._addressField.value = "";
+        this._toggler.toggle(null);
+        this.payment = null;
     }
     private isValid(): boolean{
         return this._addressField.value.length > 0 && this.payment != null;

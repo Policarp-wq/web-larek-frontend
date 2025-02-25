@@ -20,8 +20,18 @@ export type OrderDeliveryInfo = {
     address: string,
 }
 
+export type ContactInfo = {
+    phone: string,
+    email: string,
+}
+
+export type BasketInfo = {
+    total: number,
+    items: string[]
+}
+
 export type Order = {
-    payment: "online" | "offline",
+    payment: "online" | "cash",
     email: string,
     phone: string,
     address: string,
