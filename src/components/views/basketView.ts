@@ -37,8 +37,8 @@ export class BasketViewFactory extends ViewFactory<BasketView>{
             view.setTotal(total);
         });
 
-        this._broker.on(BasketItemView.BasketItemRemoveRequestEvent, (basketItem) =>{
-            basket.removeItemByIndex((basketItem as BasketItem).index);
+        this._broker.on(BasketItemView.BasketItemRemoveRequestEvent, (basketItem: BasketItem) =>{
+            basket.removeItemByIndex(basketItem.index);
         })
         this._broker.on(Basket.BasketChangedEvent, (bask: Basket) => view.fillBasket(bask));
         view.setTotal(basket.getTotal());

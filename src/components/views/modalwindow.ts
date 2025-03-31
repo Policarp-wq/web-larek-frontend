@@ -14,7 +14,6 @@ export class ModalWindow implements IModalWindow{
     private _contentElementHolder: HTMLElement;
     public static ModalOpenedEvent: string = "modal:opened";
     public static ModalClosedEvent: string = "modal:closed";
-    private opened: boolean = false;
     constructor(broker :IEvents, container: HTMLElement){
         this.Container = container;
         this._broker = broker;

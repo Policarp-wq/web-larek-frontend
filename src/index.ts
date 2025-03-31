@@ -11,6 +11,7 @@ import { CatalogView } from './components/views/catalogView';
 import { ContactsView, ContactsViewFactory } from './components/views/contactsView';
 import { ModalWindow } from './components/views/modalwindow';
 import { OrderView, OrderViewFactory } from './components/views/orderVIew';
+import { Page } from './components/views/page';
 import { ProductFullView, ProductFullViewFactory } from './components/views/productCardView';
 import { SuccessView, SuccessViewFactory } from './components/views/successView';
 import './scss/styles.scss';
@@ -41,7 +42,8 @@ const modalWindowContainer = ensureElement<HTMLElement>("#modal-container");
 const larek = new LarekApi(API_URL);
 const broker = new EventEmitter();
 
-const modalWindow : ModalWindow = new ModalWindow(broker, modalWindowContainer);
+const modalWindow = new ModalWindow(broker, modalWindowContainer);
+const page = new Page(broker);
 const order: OrderProcess = new OrderProcess();
 const basket = new Basket(broker);
 

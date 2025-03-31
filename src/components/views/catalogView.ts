@@ -7,20 +7,18 @@ import { ProductFullView, ProductFullViewFactory } from "./productCardView";
 import { IViewFactory } from "./viewFactory";
 
 export class CatalogView implements IView{
-    private _catalog : Catalog;
     private _presenter: HTMLElement;
     private _cardFactory: IViewFactory<CatalogProductView>;
     constructor(catalog: Catalog, holder: HTMLElement, cardFactory: IViewFactory<CatalogProductView>){
-        this._catalog = catalog;
         this._presenter = holder;
         this._cardFactory = cardFactory;
         this.fill(catalog);
     }
 
     private fill(catalog: Catalog){
-        const productViewsItems = catalog.getProducts().map(pr => {
-            return this._cardFactory.getView(pr);
-        })
+        const productViewsItems = catalog
+        .getProducts()
+        .map(pr => this._cardFactory.getView(pr));
         productViewsItems.forEach(prodView => {
             this._presenter.appendChild(prodView.getRendered());
         })

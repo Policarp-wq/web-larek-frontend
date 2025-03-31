@@ -53,7 +53,7 @@ export class Basket implements IBasket{
     }
     removeItemByIndex(itemInd: number){
         if(itemInd < 0 || itemInd >= this._products.length){
-            console.error("Tried to remove index out of array");
+            console.error("Attempt to remove index out of array");
             return;
         }
             
