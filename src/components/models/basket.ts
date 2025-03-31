@@ -13,6 +13,7 @@ export interface IBasket{
     getTotal(): number;
     getProdcutsCnt(): number;
     clear(): void;
+    canBeOrdered() : boolean;
 }
 
 export class Basket implements IBasket{
@@ -49,7 +50,7 @@ export class Basket implements IBasket{
         this._products.push(new BasketItem(item, this._products.length));
         this._total += item.price; 
         this._broker.emit(Basket.BasketItemAddedEvent, item);
-        this._broker.emit(Basket.BasketTotalUpdated, {total: this._total});
+        this._broker.emit(Basket.BasketTotalUpdated, this);
     }
     removeItemByIndex(itemInd: number){
         if(itemInd < 0 || itemInd >= this._products.length){
@@ -65,7 +66,7 @@ export class Basket implements IBasket{
             .concat(this._products.slice(itemInd + 1));
         this._total -= copy.product.price;
         this._broker.emit(Basket.BasketItemRemovedEvent, copy);
-        this._broker.emit(Basket.BasketTotalUpdated, {total: this._total});
+        this._broker.emit(Basket.BasketTotalUpdated, this);
         this._broker.emit(Basket.BasketChangedEvent, this);
     }
     removeItem(item: ProductItem){
@@ -102,10 +103,13 @@ export class Basket implements IBasket{
     getProdcutsCnt(): number {
         return this._products.length;
     }
+    canBeOrdered() : boolean{
+        return this.getProdcutsCnt() > 0;
+    }
     clear(): void {
         this._products = [];
         this._total = 0;
-        this._broker.emit(Basket.BasketTotalUpdated, {total: 0});
+        this._broker.emit(Basket.BasketTotalUpdated, this);
         this._broker.emit(Basket.BasketClearedEvent);
     }
 } 

@@ -1,6 +1,7 @@
 import { ContactInfo } from "../../types";
 import { cloneTemplate } from "../../utils/utils";
 import { IEvents } from "../base/events";
+import { IDisposable } from "./idisposable";
 import { IView } from "./iview";
 import { ModalWindow } from "./modalwindow";
 import { ViewFactory } from "./viewFactory";
@@ -40,7 +41,7 @@ export class ContactsViewFactory extends ViewFactory<ContactsView>{
     }
 }
 
-export class ContactsView implements IView{
+export class ContactsView implements IView, IDisposable{
     holder: HTMLFormElement;
     broker: IEvents;
     emailInput: HTMLInputElement;
@@ -53,6 +54,9 @@ export class ContactsView implements IView{
 
     private isValid() : boolean{
         return this.emailInput.value.length > 0 && this.phoneInput.value.length > 0;
+    }
+    dispose(): void {
+        this.holder.remove();
     }
 
     inputChanged(){

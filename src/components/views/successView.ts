@@ -1,6 +1,7 @@
 import { SuccessOrder } from "../../types";
 import { bem, cloneTemplate } from "../../utils/utils";
 import { IEvents } from "../base/events";
+import { IDisposable } from "./idisposable";
 import { IView } from "./iview";
 import { ViewFactory } from "./viewFactory";
 
@@ -24,7 +25,7 @@ export class SuccessViewFactory extends ViewFactory<SuccessView>{
     }
 }
 
-export class SuccessView implements IView{
+export class SuccessView implements IView, IDisposable{
     holder: HTMLDivElement;
     description: HTMLParagraphElement;
     closeBtn: HTMLButtonElement;
@@ -32,5 +33,8 @@ export class SuccessView implements IView{
 
     getRendered(): HTMLElement {
         return this.holder;
+    }
+    dispose(): void {
+        this.holder.remove();
     }
 }

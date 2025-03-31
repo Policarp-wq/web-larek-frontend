@@ -1,5 +1,6 @@
 import { bem } from "../../utils/utils";
 import { IEvents } from "../base/events";
+import { IDisposable } from "./idisposable";
 import { IView } from "./iview";
 
 export interface IModalWindow{
@@ -8,8 +9,11 @@ export interface IModalWindow{
     close(): void;
 }
 
+export interface IModalDisplayable extends IView, IDisposable{}
+
 export class ModalWindow implements IModalWindow{
     Container: HTMLElement;
+    _current: IModalDisplayable = null;
     private _broker: IEvents;
     private _contentElementHolder: HTMLElement;
     public static ModalOpenedEvent: string = "modal:opened";
@@ -33,19 +37,21 @@ export class ModalWindow implements IModalWindow{
         this._broker.on("clicked:outside_modal", () => this.close())
         
     }
-    open(child : IView): void {
+    open(child : IModalDisplayable): void {
         this.close();
         if(!this._contentElementHolder){
             console.error("Content element holder is not assigned!");
             return;
         }
-        this._contentElementHolder.appendChild(child.getRendered());
+        this._current = child;
+        this._contentElementHolder.appendChild(this._current.getRendered());
         this.Container.classList.add("modal_active");
         this._broker.emit(ModalWindow.ModalOpenedEvent);
 
     }
     close(): void {
         this.Container.classList.remove("modal_active");
+        this._current?.dispose();
         this._contentElementHolder.innerHTML = "";
         this._broker.emit(ModalWindow.ModalClosedEvent);
     }

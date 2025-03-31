@@ -1,6 +1,7 @@
 import { OrderDeliveryInfo } from "../../types";
 import { bem, cloneTemplate } from "../../utils/utils";
 import { IEvents } from "../base/events";
+import { IDisposable } from "./idisposable";
 import { IView } from "./iview";
 import { ModalWindow } from "./modalwindow";
 import { ToggleButtons } from "./toggleButtons";
@@ -48,7 +49,7 @@ export class OrderViewFactory extends ViewFactory<OrderView>{
     }
 }
 
-export class OrderView implements IView{
+export class OrderView implements IView, IDisposable{
     holder: HTMLFormElement;
     broker: IEvents;
     addressField: HTMLInputElement;
@@ -87,5 +88,8 @@ export class OrderView implements IView{
     }
     getRendered(): HTMLElement {
         return this.holder;
+    }
+    dispose(): void {
+        this.holder.remove();
     }
 }

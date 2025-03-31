@@ -1,6 +1,7 @@
 import { ProductFull, ProductItem, сategoryType } from "../../types";
 import { bem, cloneTemplate, getPricePresent } from "../../utils/utils";
 import { IEvents } from "../base/events";
+import { IDisposable } from "./idisposable";
 import { IView } from "./iview";
 import { ViewFactory } from "./viewFactory";
 
@@ -39,7 +40,7 @@ export class ProductFullViewFactory extends ViewFactory<ProductFullView>{
     }
 }
 
-export class ProductFullView implements IView {
+export class ProductFullView implements IView, IDisposable {
     category: HTMLSpanElement;
     holder: HTMLDivElement;
     image: HTMLImageElement;
@@ -52,5 +53,8 @@ export class ProductFullView implements IView {
 
     getRendered(): HTMLElement {
         return this.holder;
+    }
+    dispose(): void {
+        this.holder.remove();
     }
 }

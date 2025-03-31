@@ -60,12 +60,12 @@ broker.on(ModalWindow.ModalClosedEvent, () =>{
 })
 
 const basketButton = ensureElement<HTMLButtonElement>(".header__basket");
-basketButton.addEventListener('click', (evt) =>{
+basketButton.addEventListener('click', () =>{
     modalWindow.open(basketView);
 })
 
-broker.on(ProductFullView.BasketAddedEvent, (product) =>{
-    basket.addItem(product as ProductItem);
+broker.on(ProductFullView.BasketAddedEvent, (product: ProductItem) =>{
+    basket.addItem(product);
 })
 
 broker.on(ProductFullView.BasketAddedEvent, () =>{
@@ -96,16 +96,16 @@ const factories = {
 }
 const basketView = factories.basketViewFactory.getView(basket);
 
-const orderView = factories.orderViewFactory.getView();
 broker.on(BasketView.BasketOrderEvent, (basketInfo: BasketInfo) =>{
     order.clear();
     order.addBasketInfo(basketInfo);
+    const orderView = factories.orderViewFactory.getView();
     modalWindow.open(orderView);
 })
 
-const contacts = factories.contactsViewFactory.getView();
 broker.on(OrderView.OrderContinueEvent, (orderInfo: OrderDeliveryInfo) => {
     order.addDeliveryInfo(orderInfo);
+    const contacts = factories.contactsViewFactory.getView();
     modalWindow.open(contacts);
 })
 
@@ -129,7 +129,8 @@ broker.on(ContactsView.ContactsAddedEvent, (contactsInfo: ContactInfo) => {
 })
 
 broker.on(CatalogProductView.CatalogProductClickedEvent, (product : ProductItem) => {
-    modalWindow.open(factories.productFullViewFactory.getView({product: product, available: !basket.contains(product.id)}))
+    const productView = factories.productFullViewFactory.getView({product: product, available: !basket.contains(product.id)})
+    modalWindow.open(productView)
 });
 
 
